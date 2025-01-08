@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roman Legacy</title>
+    <link rel="icon" type="image/x-icon" href="https://up.yimg.com/ib/th?id=OIP.9ykEn52mX7Uo9aGls8_1YwHaEJ&pid=Api&rs=1&c=1&qlt=95&w=174&h=97">
+    <style>
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loading-screen h1 {
+            font-size: 2rem;
+            color: #333;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        body.loaded #loading-screen {
+            display: none;
+        }
+        
+        :root {
+            --page-height: 60%;
+            --font-size: 16px;
+            --title-font-size: 24px;
+            --bg-color: lightgreen;
+            --text-color: rgb(255, 255, 255);
+            --text2-color: black;
+            --nav-bg-color: rgb(196, 196, 196);
+            --nav-button-color: #eeeeee;
+            --transition-duration: 2s;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: rgb(46, 46, 46);
+            --text-color: black;
+            --text2-color: white;
+            --nav-bg-color: rgb(50, 50, 50);
+            --nav-button-color: #484848;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--font-size);
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        nav {
+            width: 100%;
+            background-color: var(--nav-bg-color);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            transition: background-color var(--transition-duration);
+        }
+
+        nav button {
+            background-color: var(--nav-button-color);
+            color: var(--text2-color);
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        nav button:hover {
+            background-color: #777;
+        }
+
+        nav button.active {
+            background-color: #2196F3;
+        }
+
+        .page {
+            display: none;
+            margin-top: 80px;
+            padding: 2%;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+            min-width: 300px;
+            margin: 20px auto;
+            overflow-y: auto;
+            height: var(--page-height);
+            text-align: center;
+            transition: opacity var(--transition-duration), transform var(--transition-duration);
+        }
+
+        .active {
+            display: block !important;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .page:not(.active) {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        #page-1 { background-color: rgb(150, 0, 128); }
+        #page-2 { background-color: rgb(172, 112, 0); }
+        #page-3 { background-color: rgb(141, 176, 188); }
+        #page-4 { background-color: lightpink; }
+        #page-5 { background-color: lightcoral; }
+
+        .footer-text {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 16px;
+            color: var(--text2-color);
+            background-color: var(--text-color);
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        #settings-page {
+            background-color: var(--nav-bg-color);
+            position: relative;
+        }
+
+        .settings-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color var(--transition-duration);
+        }
+
+        .settings-icon:hover {
+            background-color: #555;
+        }
+
+        .settings-icon img {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            transition: background-color var(--transition-duration);
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            border-radius: 50%;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        .content-box {
+            background-color: rgb(213, 139, 0);
+            border: 4px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .content-box2 {
+            background-color: rgb(103, 128, 137);
+            border: 4px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .content-box3 {
+            background-color: rgb(194, 138, 147);
+            border: 4px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .content-box4 {
+            background-color: rgb(186, 99, 99);
+            border: 4px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .back-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--nav-button-color);
+            color: var(--text2-color);
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size);
+            border-radius: 5px;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .back-button:hover {
+            background-color: #777;
+        }
+
+        /* Adjusting the position of the label above the toggle switch */
+        #settings-page label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .switch {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Light/Dark Theme Text */
+        #themeText {
+            font-size: 18px;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <h1>Loading...</h1>
+    </div>
+
+    <nav>
+        <button onclick="navigateTo(1)" id="nav-1" class="active">Home</button>
+        <button onclick="navigateTo(2)" id="nav-2">Law</button>
+        <button onclick="navigateTo(3)" id="nav-3">Writing</button>
+        <button onclick="navigateTo(4)" id="nav-4">Architecture</button>
+        <button onclick="navigateTo(5)" id="nav-5">Art</button>
+    </nav>
+
+    <div id="page-1" class="page active">
+        <h1>Welcome to the Roman Legacy</h1>
+        <p>For: Cleveland Museum of Art</p>
+        <img src="https://i.natgeofe.com/k/a6c9f195-de20-445d-9d36-745ef56042c5/OG_Colosseum_Ancient-Rome_KIDS_1122.jpg" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+        <p>Welcome to this Roman exhibit. This exhibit has law, writing, architecture, and art for you to learn about.</p>
+    </div>
+
+    <div id="page-2" class="page">
+        <div class="content-box">
+            <h1>Welcome to Roman Law</h1>
+        </div>
+        <div class="content-box">
+            <p>Back in ancient Rome from 753 BCE to 476 CE, Roman Law had been a legal system. And continued in to the Eastern part of Rome till about 1400 CE. Also today it has influenced many legal systems today. Like how not one part of the government can overrule a different part. Let's take a look into Roman Law.</p>
+        </div>
+        <div class="content-box">
+            <img src="https://www.touchstonetruth.com/wp-content/uploads/2022/02/450-BCE-Twelve-Tables-wide-crop.jpg" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>This Roman picture repethens the Twelve Tables. The Twelve Tables were a set of laws to stop Roman judges to favor for people in the upper class. And for everyone to be treated the same. The Twelve Tables were made from broze tablets that were carved, and placed around Roman stores. All of these rule took place around 450 BCE.</p>
+        </div>
+        <div class="content-box">
+            <img src="https://tse3.mm.bing.net/th?id=OIP.KlEcTbA-wR8fOjVD44gEXgHaEn&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>The image that I have put shows the Roman court. It shows that no one part of the government can overrule any other part of the government. The reason that this is good is because if one part of the governemt has more power then the others. Then that part would be making all of the desigons. So it makes it so all the government parts are equal, and it would make people happy. So that they were have a succsesful nation.</p>
+        </div>
+        <div class="content-box">
+            <p>Both of these are connected to to world that we are in today. The Twelve Tables are connected to the way the world is today. The way that the Twelve Tables are connected to today is by judges don't have a favor in people if they are rich or poor. And the way that one part of the government can't overrule another part is like how we have it today. And it is like the 3 branches that we have today in the US american system.</p>
+        </div>
+    </div>
+
+    <div id="page-3" class="page">
+        <div class="content-box2">       
+            <h1>Welcome to Roman Writing</h1>
+        </div>
+        <div class="content-box2">
+            <p>In ancient Rome they had writing system, close to ours. There are a few ways that it is like todays writing system. One of the ways is how they have an alphabet. Also they have a way of writing numbers that is not like us.</p>
+        </div>
+        <div class="content-box2">
+            <img src="https://tse1.mm.bing.net/th?id=OIP.0RlNHs086bAPgmjblC2CugHaE4&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>Did you know that the Romans have an alphabet? They do and they don't have 26 letters they only have 23. They have it the same way we do like how plant is a word on paper and you can use it verbally. So thats how they could make writing by lising to someone and then writing it down.</p>
+        </div>
+        <div class="content-box2">
+            <img src="https://tse4.mm.bing.net/th?id=OIP.y0X0J6Ra02RHavz_qy9aygHaD4&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>Rome number are not the same as ours. Rome used numerals which is like numbers but a letter means a number, like V=5. They used these Roman numerals like how we use numbers today. They counted with them, did math with them, and more.</p>
+        </div>
+        <div class="content-box2">
+            <p>You can see how we use Rome writing in smiller ways. They do it by having 23 letters in the alphabet, when we have 26. And how if you talk then other people can write what you said down on paper, or as they had it pyparice. They also use numerals like how we use numbers by doing everything that we do with numbers. They also had simmiler stuff to write down words on.</p>
+        </div>
+        
+    </div>
+    <div id="page-4" class="page">
+        <div class="content-box3">
+            <h1>Welcome to Roman Architecture</h1>
+        </div>
+        <div class="content-box3">
+            <p>Roman has made many great achevments in architecture. Like how they made the Roman Colosseum. They also made the aches easier to make. How they roads were set up. All of these are things that we still do or close to doing today.</p>
+        </div>
+        <div class="content-box3">
+            <img src="https://tse1.mm.bing.net/th?id=OIP.oVzVRLWqcRdYNuzT4iqK_gHaFj&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>Rome had roads for fast and easier way of moving around. The way they did this is how they built the roads and how they were set up. The roads were made as a wide long path made with stones. And the way that they were set up is in a grid pattern.</p>
+        </div>
+        <div class="content-box3">
+            <img src="https://tse2.mm.bing.net/th?id=OIP.glRHuKg_BJVtSovfiWB9JQHaE8&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+                <p>Rome used alot of aches in good looking and useful ways. They used them by making look perfect for what they are building, like maybe the Colosseum. But in a useful way they used less bricks or stones to make it so they can make more buildings. And the way that they made arches is by having a wooden frame and place all the sones, intill the keystone was put in.</p>
+        </div>
+        <div class="content-box3">
+            <p>Today we use a lot of Roman Architecture. Like how we still use arches to this day. And how we still use a lot of roads for fast travel. And the way we put down the roads is in a grid patteren like how they used it. Just like NYC has a grid patteren.</p>
+        </div>
+    </div>
+
+    <div id="page-5" class="page">
+        <div class="content-box4">
+            <h1>Welcome to Roman Art</h1>
+        </div>
+        <div class="content-box4">
+            <p>Rome has alot or art. They have paintings or murals. They had sculpturs that they made. And all of these are used by us today.</p>
+        </div>
+        <div class="content-box4">
+            <img src="https://tse2.mm.bing.net/th?id=OIP.-TPHInK2tP0jAPPD6dv9rgHaFv&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>Roman are did alot of paintings. The painting were also called murals. And they could contain literatur and mythology. They also put them on there walls like we do.</p>
+        </div>
+        <div class="content-box4">
+            <img src="https://tse4.mm.bing.net/th?id=OIP.XrjxtVylTKGMLFRMxkM_ZQHaIV&pid=Api&P=0&h=220" alt="Roman Exhibit" style="width: 60%; max-width: 600px;">
+            <p>The Romans had alot of sculptures. They made sculptures of most things. But they made didn't have to be real people. They had alot of sculptures were about Roman God and Goddess.</p>
+        </div>
+        <div class="content-box4">
+            <p>So Roman had alot of art in there empire. They had sculptures which we still do to this day. And they made paintings, which we also do now. And most of what they did are now in musiums.</p>
+        </div>
+    </div>
+
+    <div id="settings-page" class="page">
+        <h1>Settings</h1>
+        <p id="themeText">Light Theme</p>
+        <label class="switch">
+            <input type="checkbox" id="darkModeToggle">
+            <span class="slider"></span>
+        </label>
+        <button class="back-button" onclick="navigateBack()">Go Back</button>
+    </div>
+
+    <p class="footer-text">By: Jacob & Ethan</p>
+
+    <div class="settings-icon" onclick="navigateToSettings()">
+        <img src="https://up.yimg.com/ib/th?id=OIP.4keBnUC3y3XbELSDswluqgHaHD&pid=Api&rs=1&c=1&qlt=95&w=129&h=122" alt="Settings Icon">
+    </div>
+
+    <script>
+        let lastActivePage = 1;
+
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            document.getElementById('content').style.display = 'block';
+        });
+
+        window.onload = function() {
+            navigateTo(1);
+        
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const themeText = document.getElementById('themeText');
+        
+            // Initialize the theme based on the current setting
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                themeText.textContent = 'Dark Theme';
+                darkModeToggle.checked = true;
+            } else {
+                themeText.textContent = 'Light Theme';
+                darkModeToggle.checked = false;
+            }
+        
+            // Add event listener to toggle the theme and update text accordingly
+            darkModeToggle.addEventListener('change', () => {
+                toggleTheme();
+            });
+        
+            updateThemeVariable();
+        };
+        
+        // Function to change the theme manually
+        function toggleTheme() {
+            const themeText = document.getElementById('themeText');
+        
+            // Add delay for theme change (simulating delay for demonstration)
+                if (darkModeToggle.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    setTimeout(() => {
+                    themeText.textContent = 'Dark Theme';
+                    },927);
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    setTimeout(() => {
+                    themeText.textContent = 'Light Theme';
+                    },950);
+                }
+                updateThemeVariable();
+        }
+        
+        function updateThemeVariable() {
+            const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Dark' : 'Light';  // You can use the variable for other purposes
+        }
+        
+        function navigateTo(pageNumber) {
+            const pages = document.querySelectorAll('.page');
+            const buttons = document.querySelectorAll('nav button');
+        
+            pages.forEach(page => page.classList.remove('active'));
+            buttons.forEach(button => button.classList.remove('active'));
+        
+            document.getElementById(`page-${pageNumber}`).classList.add('active');
+            document.getElementById(`nav-${pageNumber}`).classList.add('active');
+        
+            lastActivePage = pageNumber;
+        }
+        
+        function navigateToSettings() {
+            document.querySelectorAll('nav button').forEach(button => {
+                button.classList.add('disabled');
+                button.setAttribute('disabled', true);
+            });
+            document.querySelector('.settings-icon').style.display = 'none';
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById('settings-page').classList.add('active');
+        }
+        
+        function navigateBack() {
+            document.querySelectorAll('nav button').forEach(button => {
+                button.classList.remove('disabled');
+                button.removeAttribute('disabled');
+            });
+            document.querySelector('.settings-icon').style.display = 'flex';
+            navigateTo(lastActivePage);
+        }
+        </script>
+        
+        
+</body>
+</html>
